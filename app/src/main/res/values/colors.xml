@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="page_background">#F6F5FA</color>
+    <color name="ink">#231F34</color>
+    <color name="muted">#757084</color>
+    <color name="purple">#6748EB</color>
+</resources>
