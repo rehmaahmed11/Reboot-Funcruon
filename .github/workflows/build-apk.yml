@@ -24,22 +24,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build Debug and Release APKs
         run: ./gradlew assembleDebug assembleRelease --no-daemon --stacktrace
@@ -66,7 +63,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: RebootMenu-debug-apk
           path: dist/RebootMenu-debug.apk
@@ -74,27 +71,26 @@ jobs:
           retention-days: 90
 
       - name: Upload Release APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: RebootMenu-release-apk
-          path: dist/RebootMenu-release.apk
+          path: dist/RebootMenu-release-apk
           if-no-files-found: error
           retention-days: 90
 
       - name: Publish APK Release on Merge to main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        continue-on-error: true
-        with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Reboot Menu APK (Build #${{ github.run_number }})
-          body: |
-            Automated APK build generated from commit `${{ github.sha }}` on `main`.
-
-            ### Included Files
-            - **`RebootMenu-release.apk`** — Signed release APK ready to install on Android devices.
-            - **`RebootMenu-debug.apk`** — Debug-signed APK.
-          files: |
-            dist/RebootMenu-release.apk
-            dist/RebootMenu-debug.apk
-          generate_release_notes: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v1.0.${GITHUB_RUN_NUMBER}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/RebootMenu-release.apk dist/RebootMenu-debug.apk --clobber
+          else
+            gh release create "$TAG" \
+              dist/RebootMenu-release.apk \
+              dist/RebootMenu-debug.apk \
+              --title "Reboot Menu APK (Build #${GITHUB_RUN_NUMBER})" \
+              --notes "Automated APK build generated from commit \`${GITHUB_SHA}\` on \`main\`." \
+              --generate-notes
+          fi
