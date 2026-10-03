@@ -10,9 +10,28 @@ A polished Android control center for reboot and device power actions, with an o
 - Root commands run through `su`; screen lock uses Android Device Admin and does not require root.
 - The widget runs as a foreground service; when notifications are allowed, its ongoing notification includes a turn-off action.
 
-## Build
+## Build & CI
 
-Open this repository's root folder in Android Studio and sync the Gradle project. It uses Android Gradle Plugin 8.5, Java 17, and compile/target SDK 34.
+### Automated APK Generation (GitHub Actions)
+
+Every merge to `main` (as well as pull requests targeting `main` and manual workflow runs) triggers the **Build Android APK** workflow (`.github/workflows/build-apk.yml`), which:
+
+1. Sets up JDK 17, Android SDK 34, and Gradle 8.7.
+2. Builds both signed `RebootMenu-debug.apk` and `RebootMenu-release.apk`.
+3. Uploads the generated `.apk` files as workflow artifacts (`RebootMenu-debug-apk` and `RebootMenu-release-apk`).
+4. Publishes a GitHub Release on every merge to `main` with both `.apk` files attached.
+
+### Local Build
+
+Open this repository's root folder in Android Studio or build from the command line using the included Gradle Wrapper (Java 17 and Android SDK 34 required):
+
+```bash
+./gradlew assembleDebug assembleRelease
+```
+
+The signed APKs are written to:
+- `app/build/outputs/apk/debug/app-debug.apk`
+- `app/build/outputs/apk/release/app-release.apk`
 
 ## Permissions and safety
 
